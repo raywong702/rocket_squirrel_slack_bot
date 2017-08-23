@@ -78,10 +78,10 @@ def get_new_posts(client, bucket_name, bucket_file, url, date, title):
     return None
 
 
-def post_to_slack(slack_client, posts):
+def post_to_slack(slack_client, posts, slack_channel):
     for post in posts:
         slack_client.api_call('chat.postMessage',
-                              channel='#general',
+                              channel=slack_channel,
                               text=post,
                               as_user='true')
 
@@ -100,6 +100,8 @@ def main():
     slack_token = config.get(config_section, 'token')
     url = config.get(config_section, 'url')
 
+    slack_channel = '#general'
+
     client = get_s3_client(access_key_id, secret_access_key)
 
     date = 'tmp'
@@ -113,7 +115,7 @@ def main():
     posts = get_new_posts(client, bucket_name, bucket_file, url, date, title)
     print(posts)
     slack_client = SlackClient(slack_token)
-    post_to_slack(slack_client, posts)
+    post_to_slack(slack_client, posts, slack_channel)
 
 
 if __name__ == '__main__':
