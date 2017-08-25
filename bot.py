@@ -98,9 +98,8 @@ def main():
     bucket_name = config.get(config_section, 'bucket_name')
     bucket_file = config.get(config_section, 'bucket_file')
     slack_token = config.get(config_section, 'token')
+    slack_channel = config.get(config_section, 'channel')
     url = config.get(config_section, 'url')
-
-    slack_channel = '#general'
 
     client = get_s3_client(access_key_id, secret_access_key)
 
