@@ -3,6 +3,7 @@ import boto3
 import configparser
 import feedparser
 import json
+# import os
 import requests
 from slackclient import SlackClient
 
@@ -87,6 +88,15 @@ def post_to_slack(slack_client, posts, slack_channel):
 
 
 def main():
+    # access_key_id = os.environ['access_key_id']
+    # secret_access_key = os.environ['secret_access_key']
+    # region = os.environ['region']
+    # bucket_name = os.environ['bucket_name']
+    # bucket_file = os.environ['bucket_file']
+    # slack_token = os.environ['token']
+    # slack_channel = os.environ['channel']
+    # url = os.environ['url']
+
     config_file = 'config.ini'
     config_section = 'bot0'
     config = configparser.ConfigParser()
