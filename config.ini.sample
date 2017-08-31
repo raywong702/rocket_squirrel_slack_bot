@@ -1,0 +1,9 @@
+[dev]
+ACCESS_KEY_ID: youraccesskeyid
+SECRET_ACCESS_KEY: yoursecretaccesskey
+REGION: us-west-2
+BUCKET_NAME: rocketsquirrel
+BUCKET_FILE: feed.json
+TOKEN: yourslacktoken
+CHANNELS: #dotorg #_general
+URL: https://rocketsquirrel.org/feed
