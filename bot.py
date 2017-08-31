@@ -127,9 +127,7 @@ def post_to_slack(slack_client, posts, slack_channels):
         author = post['author']
         blurb = f'A Squirrel by the name of @{author} has published'
         blurb = f'{blurb} a new blog entry. Check it out here! {url}'
-        print(blurb)
         for slack_channel in slack_channels.split():
-            print(slack_channel)
             slack_client.api_call('chat.postMessage',
                                   channel=slack_channel,
                                   text=blurb,
