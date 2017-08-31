@@ -96,7 +96,8 @@ def get_new_posts(client, bucket_name, bucket_file, url, date, title):
     date: last stored last-modified date header from s3
     title: last stored rss feed's post's title
     updates json in s3 object with latest date and title
-    returns list of new rss feed's posts' urls in chronological order
+    returns list of dicts containing new rss feed's posts' urls and author
+    in chronological order
     '''
     urls = []
     if has_new_posts(url, date):
@@ -108,23 +109,31 @@ def get_new_posts(client, bucket_name, bucket_file, url, date, title):
         for item in feed.entries:
             if item.title == title:
                 break
-            urls.append(item.link)
+            post_meta = {'url': item.link, 'author': item.author}
+            urls.append(post_meta)
         urls.reverse()
     return urls
 
 
-def post_to_slack(slack_client, posts, slack_channel):
+def post_to_slack(slack_client, posts, slack_channels):
     '''
     slack_client: slack client object
     posts: list of new rss feed's posts' urls in chronological order
-    slack_channel: name of slack channel to post to
-    posts new posts to slack channel
+    slack_channels: space delimited names of slack channel to post to
+    posts new posts to slack channels
     '''
     for post in posts:
-        slack_client.api_call('chat.postMessage',
-                              channel=slack_channel,
-                              text=post,
-                              as_user='true')
+        url = post['url']
+        author = post['author']
+        blurb = f'A Squirrel by the name of @{author} has published'
+        blurb = f'{blurb} a new blog entry. Check it out here! {url}'
+        print(blurb)
+        for slack_channel in slack_channels.split():
+            print(slack_channel)
+            slack_client.api_call('chat.postMessage',
+                                  channel=slack_channel,
+                                  text=blurb,
+                                  as_user='true')
 
 
 def load_config(config_file, config_section):
@@ -134,7 +143,7 @@ def load_config(config_file, config_section):
     load environment variables from exported variables
     returns a list for the environment variables: access_key_id,
     secret_access_key, region, bucket_name, bucket_file, slack_token,
-    slack_channel, url
+    slack_channels, url
     '''
     dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -148,7 +157,7 @@ def load_config(config_file, config_section):
         bucket_name = config.get(config_section, 'bucket_name')
         bucket_file = config.get(config_section, 'bucket_file')
         slack_token = config.get(config_section, 'token')
-        slack_channel = config.get(config_section, 'channel')
+        slack_channels = config.get(config_section, 'channels')
         url = config.get(config_section, 'url')
     else:
         access_key_id = os.environ['access_key_id']
@@ -157,11 +166,11 @@ def load_config(config_file, config_section):
         bucket_name = os.environ['bucket_name']
         bucket_file = os.environ['bucket_file']
         slack_token = os.environ['token']
-        slack_channel = os.environ['channel']
+        slack_channels = os.environ['channels']
         url = os.environ['url']
 
     return [access_key_id, secret_access_key, region, bucket_name, bucket_file,
-            slack_token, slack_channel, url]
+            slack_token, slack_channels, url]
 
 
 def main():
@@ -170,7 +179,7 @@ def main():
     posts' urls and post the urls to slack
     '''
     config_file = 'config.ini'
-    config_section = 'bot0'
+    config_section = 'dev'
 
     (access_key_id,
      secret_access_key,
@@ -178,15 +187,15 @@ def main():
      bucket_name,
      bucket_file,
      slack_token,
-     slack_channel,
+     slack_channels,
      url) = load_config(config_file, config_section)
 
     client = get_s3_client(access_key_id, secret_access_key)
 
     # Temp force update
-    # date = 'tmp'
-    # title = u'Project Euler with ES6 \u2013 Problem 1'
-    # write_to_s3(client, bucket_name, bucket_file, date, title)
+    date = 'tmp'
+    title = u'Project Euler with ES6 \u2013 Problem 1'
+    write_to_s3(client, bucket_name, bucket_file, date, title)
 
     json_body = get_s3_obj(client, bucket_name, bucket_file, region)
     date = json_body['date']
@@ -195,7 +204,7 @@ def main():
     posts = get_new_posts(client, bucket_name, bucket_file, url, date, title)
     print(posts)
     slack_client = SlackClient(slack_token)
-    post_to_slack(slack_client, posts, slack_channel)
+    post_to_slack(slack_client, posts, slack_channels)
 
 
 def lambda_handler(event, context):
