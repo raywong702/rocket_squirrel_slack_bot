@@ -203,9 +203,9 @@ def main():
     client = get_s3_client(access_key_id, secret_access_key)
 
     # Temp force update
-    date = 'tmp'
-    title = u'Project Euler with ES6 \u2013 Problem 1'
-    write_to_s3(client, bucket_name, bucket_file, date, title)
+    # date = 'tmp'
+    # title = u'Project Euler with ES6 \u2013 Problem 1'
+    # write_to_s3(client, bucket_name, bucket_file, date, title)
 
     json_body = get_s3_obj(client, bucket_name, bucket_file, region)
     date = json_body['date']
