@@ -134,7 +134,9 @@ def post_to_slack(slack_client, posts, slack_channels, slack_blurb):
     '''
     for post in posts:
         url = post['url']
-        author = post['author']
+        at = url.index('@')
+        end = url.index('/', at)
+        author = url[at:end]
         blurb = transform_blurb(slack_blurb, url, author)
         for slack_channel in slack_channels.split():
             slack_client.api_call('chat.postMessage',
