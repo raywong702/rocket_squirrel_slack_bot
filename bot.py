@@ -75,14 +75,12 @@ def get_last_modified(url):
     return requests.head(url).headers['Last-Modified']
 
 
-def has_new_posts(url, date):
-    ''' url: rss feed url
-    date: string. last stored last-modified date header from s3
+def has_new_posts(date, last_modified):
+    ''' date: string. last stored last-modified date header from s3
+    last_modified: string. date retrieved from s3 of last modified time
     returns true if there is new content in rss feed
     returns false if no new content in rss feed
     '''
-    last_modified = get_last_modified(url)
-
     if last_modified == date:
         return False
     return True
@@ -100,7 +98,8 @@ def get_new_posts(client, bucket_name, bucket_file, url, date, title):
     in chronological order
     '''
     urls = []
-    if has_new_posts(url, date):
+    last_modified = get_last_modified(url)
+    if has_new_posts(date, last_modified):
         feed = feedparser.parse(url)
         new_date = get_last_modified(url)
         new_title = feed.entries[0].title
@@ -115,18 +114,28 @@ def get_new_posts(client, bucket_name, bucket_file, url, date, title):
     return urls
 
 
-def post_to_slack(slack_client, posts, slack_channels):
+def transform_blurb(slack_blurb, url, author):
+    ''' slack_blurb: string of text to say in slack post
+    url: post's url
+    author: post's author
+    returns slack blurb with '{url}' and '{author}' replaced with url and
+    author
+    '''
+    return slack_blurb.replace('{url}', url).replace('{author}', author)
+
+
+def post_to_slack(slack_client, posts, slack_channels, slack_blurb):
     '''
     slack_client: slack client object
     posts: list of new rss feed's posts' urls in chronological order
     slack_channels: space delimited names of slack channel to post to
+    slack_blurb: string. text to post where {author} and {url} will be replaced
     posts new posts to slack channels
     '''
     for post in posts:
         url = post['url']
         author = post['author']
-        blurb = f'A Squirrel by the name of @{author} has published'
-        blurb = f'{blurb} a new blog entry. Check it out here! {url}'
+        blurb = transform_blurb(slack_blurb, url, author)
         for slack_channel in slack_channels.split():
             slack_client.api_call('chat.postMessage',
                                   channel=slack_channel,
@@ -156,6 +165,7 @@ def load_config(config_file, config_section):
         bucket_file = config.get(config_section, 'bucket_file')
         slack_token = config.get(config_section, 'token')
         slack_channels = config.get(config_section, 'channels')
+        slack_blurb = config.get(config_section, 'blurb')
         url = config.get(config_section, 'url')
     else:
         access_key_id = os.environ['access_key_id']
@@ -165,10 +175,11 @@ def load_config(config_file, config_section):
         bucket_file = os.environ['bucket_file']
         slack_token = os.environ['token']
         slack_channels = os.environ['channels']
+        slack_blurb = os.environ['blurb']
         url = os.environ['url']
 
     return [access_key_id, secret_access_key, region, bucket_name, bucket_file,
-            slack_token, slack_channels, url]
+            slack_token, slack_channels, slack_blurb, url]
 
 
 def main():
@@ -186,6 +197,7 @@ def main():
      bucket_file,
      slack_token,
      slack_channels,
+     slack_blurb,
      url) = load_config(config_file, config_section)
 
     client = get_s3_client(access_key_id, secret_access_key)
@@ -202,7 +214,7 @@ def main():
     posts = get_new_posts(client, bucket_name, bucket_file, url, date, title)
     print(posts)
     slack_client = SlackClient(slack_token)
-    post_to_slack(slack_client, posts, slack_channels)
+    post_to_slack(slack_client, posts, slack_channels, slack_blurb)
 
 
 def lambda_handler(event, context):
