@@ -124,6 +124,15 @@ def transform_blurb(slack_blurb, url, author):
     return slack_blurb.replace('{url}', url).replace('{author}', author)
 
 
+def get_author(url):
+    ''' url: post's url
+    return author from url string
+    '''
+    at = url.index('@')
+    end = url.index('/', at)
+    return url[at:end]
+
+
 def post_to_slack(slack_client, posts, slack_channels, slack_blurb):
     '''
     slack_client: slack client object
@@ -134,9 +143,7 @@ def post_to_slack(slack_client, posts, slack_channels, slack_blurb):
     '''
     for post in posts:
         url = post['url']
-        at = url.index('@')
-        end = url.index('/', at)
-        author = url[at:end]
+        author = get_author(url)
         blurb = transform_blurb(slack_blurb, url, author)
         for slack_channel in slack_channels.split():
             slack_client.api_call('chat.postMessage',
