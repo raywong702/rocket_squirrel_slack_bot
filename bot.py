@@ -107,7 +107,7 @@ def get_new_posts(client, bucket_name, bucket_file, url, date, title):
         for item in feed.entries:
             if item.title == title:
                 break
-            post_meta = {'url': item.link, 'author': item.author}
+            post_meta = {'url': item.link}
             urls.append(post_meta)
         urls.reverse()
     return urls
