@@ -101,9 +101,8 @@ def get_new_posts(client, bucket_name, bucket_file, url, date, title):
     last_modified = get_last_modified(url)
     if has_new_posts(date, last_modified):
         feed = feedparser.parse(url)
-        new_date = get_last_modified(url)
         new_title = feed.entries[0].title
-        write_to_s3(client, bucket_name, bucket_file, new_date, new_title)
+        write_to_s3(client, bucket_name, bucket_file, last_modified, new_title)
 
         for item in feed.entries:
             if item.title == title:
