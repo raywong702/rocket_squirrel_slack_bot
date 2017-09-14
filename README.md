@@ -4,6 +4,9 @@ This posts new RSS feed updates to Slack channels.
 
 https://rocketsquirrel.org/@thewongguy/python/create-a-slack-bot-for-rss-feeds
 
+https://rocketsquirrel.org/@thewongguy/api/hosting-your-service-on-aws-lambda
+
+
 ## Requirements
 
 * AWS S3 tokens
