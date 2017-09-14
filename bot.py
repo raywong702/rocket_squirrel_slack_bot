@@ -213,7 +213,7 @@ def main():
 
     # Temp force update
     # date = 'tmp'
-    # title = u'Project Euler with ES6 \u2013 Problem 1'
+    # title = 'Create a Slack Bot for RSS Feeds'
     # write_to_s3(client, bucket_name, bucket_file, date, title)
 
     json_body = get_s3_obj(client, bucket_name, bucket_file, region)
