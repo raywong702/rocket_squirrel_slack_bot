@@ -148,6 +148,7 @@ def post_to_slack(slack_client, posts, slack_channels, slack_blurb):
             slack_client.api_call('chat.postMessage',
                                   channel=slack_channel,
                                   text=blurb,
+                                  link_names=1,
                                   as_user='true')
 
 
